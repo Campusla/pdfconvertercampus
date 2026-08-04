@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unir PDF - CampusLA</title>
+    <!-- Importamos pdf-lib directamente desde un CDN para que corra en el navegador -->
+    <script src="https://unpkg.com/pdf-lib@1.4.0/dist/pdf-lib.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; background: #f5f7fb; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .pdf-tool-container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 600px; box-sizing: border-box; }
@@ -25,12 +27,12 @@
 <body>
     <div class="pdf-tool-container">
         <h1>Unir Archivos PDF</h1>
-        <p>Combina múltiples archivos PDF en uno solo de forma rápida, segura y gratuita.</p>
+        <p>Combina múltiples archivos PDF en uno solo de forma rápida, segura y 100% en tu navegador.</p>
 
-        <form id="uploadForm" enctype="multipart/form-data">
+        <form id="uploadForm">
             <div id="dropZone" class="drop-zone">
                 <p>Arrastra tus archivos PDF aquí o <span class="browse-btn">selecciona archivos</span></p>
-                <input type="file" id="fileInput" name="pdf_files[]" multiple accept="application/pdf" style="display: none;">
+                <input type="file" id="fileInput" multiple accept="application/pdf" style="display: none;">
             </div>
             
             <div id="fileList" class="file-list"></div>
@@ -38,14 +40,11 @@
             <button type="submit" id="submitBtn" class="btn-primary" disabled>Unir PDFs</button>
         </form>
 
-        <div id="loading" class="loading" style="display: none;">Procesando y uniendo documentos... ☕</div>
+        <div id="loading" class="loading" style="display: none;">Uniendo documentos en tu equipo... 🚀</div>
         <div id="result" class="result"></div>
     </div>
 
     <script>
-        // CONFIGURACIÓN: URL oficial de tu backend en el cPanel de CampusLA
-        const backendUrl = 'https://www.campuslatinoamerica.edu.co/pdf-engine.php?action=merge';
-
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileList = document.getElementById('fileList');
@@ -54,7 +53,7 @@
         const loading = document.getElementById('loading');
         const resultDiv = document.getElementById('result');
 
-        let selectedFiles = new DataTransfer();
+        let selectedFiles = [];
 
         dropZone.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -73,17 +72,16 @@
                     alert(`El archivo "${file.name}" no es un PDF válido.`);
                     continue;
                 }
-                selectedFiles.items.add(file);
+                selectedFiles.push(file);
             }
-            fileInput.files = selectedFiles.files;
             updateFileList();
         }
 
         function updateFileList() {
             fileList.innerHTML = '';
-            if (selectedFiles.files.length > 0) {
+            if (selectedFiles.length > 0) {
                 submitBtn.disabled = false;
-                Array.from(selectedFiles.files).forEach((file, index) => {
+                selectedFiles.forEach((file, index) => {
                     const div = document.createElement('div');
                     div.className = 'file-item';
                     div.innerHTML = `<span>📄 ${file.name}</span> <button type="button" onclick="removeFile(${index})">❌</button>`;
@@ -95,44 +93,43 @@
         }
 
         window.removeFile = function(index) {
-            let dt = new DataTransfer();
-            let files = selectedFiles.files;
-            for (let i = 0; i < files.length; i++) {
-                if (i !== index) dt.items.add(files[i]);
-            }
-            selectedFiles = dt;
-            fileInput.files = selectedFiles.files;
+            selectedFiles.splice(index, 1);
             updateFileList();
         }
 
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (selectedFiles.length < 2) {
+                alert('Sube al menos dos archivos PDF para unir.');
+                return;
+            }
+
             loading.style.display = 'block';
             submitBtn.disabled = true;
             resultDiv.innerHTML = '';
 
-            const formData = new FormData(uploadForm);
-
             try {
-                const response = await fetch(backendUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
+                const { PDFDocument } = PDFLib;
+                const mergedPdf = await PDFDocument.create();
+
+                for (let file of selectedFiles) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await PDFDocument.load(arrayBuffer);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPages().indices);
+                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+                }
+
+                const mergedPdfFileBytes = await mergedPdf.save();
+                const blob = new Blob([mergedPdfFileBytes], { type: 'application/pdf' });
+                const downloadUrl = URL.createObjectURL(blob);
 
                 loading.style.display = 'none';
-
-                if (data.status === 'success') {
-                    const downloadFullUrl = new URL(data.download_url, backendUrl).href;
-                    resultDiv.innerHTML = `<a href="${downloadFullUrl}" class="btn-download" download>📥 Descargar PDF Unido</a>`;
-                } else {
-                    alert(data.message);
-                    submitBtn.disabled = false;
-                }
+                resultDiv.innerHTML = `<a href="${downloadUrl}" class="btn-download" download="CampusLA_Unido_${Date.now()}.pdf">📥 Descargar PDF Unido</a>`;
             } catch (error) {
                 loading.style.display = 'none';
-                alert('Ocurrió un error al comunicarse con el servidor.');
+                alert('Ocurrió un error al unir los PDFs en el navegador.');
                 submitBtn.disabled = false;
+                console.error(error);
             }
         });
     </script>
