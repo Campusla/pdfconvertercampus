@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Herramientas PDF - CampusLA</title>
-    <!-- Importamos pdf-lib directamente desde un CDN para que corra en el navegador -->
+    <!-- Importamos pdf-lib y pdf.js para el manejo y renderizado en el navegador -->
     <script src="https://unpkg.com/pdf-lib@1.4.0/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
     <style>
         body { font-family: Arial, sans-serif; background: #f5f7fb; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .pdf-tool-container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 650px; box-sizing: border-box; }
         
         /* Navegación por pestañas */
-        .tabs { display: flex; border-bottom: 2px solid #e1e4e8; margin-bottom: 25px; gap: 10px; }
+        .tabs { display: flex; border-bottom: 2px solid #e1e4e8; margin-bottom: 25px; gap: 10px; flex-wrap: wrap; }
         .tab-btn { background: none; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; color: #57606a; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.3s; }
         .tab-btn.active { color: #1877f2; border-bottom-color: #1877f2; }
         .tab-content { display: none; }
@@ -47,6 +51,7 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab(event, 'splitTab')">Dividir / Extraer</button>
             <button class="tab-btn" onclick="switchTab(event, 'mergeTab')">Unir PDFs</button>
+            <button class="tab-btn" onclick="switchTab(event, 'compressTab')">Comprimir PDF</button>
         </div>
 
         <!-- 1. SECCIÓN DIVIDIR / EXTRAER -->
@@ -90,6 +95,23 @@
 
             <div id="mergeLoading" class="loading" style="display: none;">Uniendo documentos en tu equipo... 🚀</div>
             <div id="mergeResult" class="result"></div>
+        </div>
+
+        <!-- 3. SECCIÓN COMPRIMIR PDF -->
+        <div id="compressTab" class="tab-content">
+            <h1>Comprimir Archivo PDF</h1>
+            <p>Reduce el peso de tu PDF optimizándolo directamente en tu navegador.</p>
+
+            <div id="compressDropZone" class="drop-zone">
+                <p>Arrastra tu PDF a comprimir o <span class="browse-btn">selecciona un archivo</span></p>
+                <input type="file" id="compressFileInput" accept="application/pdf" style="display: none;">
+            </div>
+            
+            <div id="compressFileInfo" class="file-info"></div>
+            <button type="button" id="compressSubmitBtn" class="btn-primary" style="display: none; margin-top: 15px;">Comprimir PDF</button>
+
+            <div id="compressLoading" class="loading" style="display: none;">Comprimiendo documento... Por favor espera 🚀</div>
+            <div id="compressResult" class="result"></div>
         </div>
     </div>
 
@@ -311,6 +333,99 @@
                 mergeLoading.style.display = 'none';
                 alert('Ocurrió un error al unir los PDFs.');
                 mergeSubmitBtn.disabled = false;
+                console.error(error);
+            }
+        });
+
+        // --- LÓGICA DE COMPRIMIR PDF ---
+        const compressDropZone = document.getElementById('compressDropZone');
+        const compressFileInput = document.getElementById('compressFileInput');
+        const compressFileInfo = document.getElementById('compressFileInfo');
+        const compressSubmitBtn = document.getElementById('compressSubmitBtn');
+        const compressLoading = document.getElementById('compressLoading');
+        const compressResult = document.getElementById('compressResult');
+
+        let selectedCompressFile = null;
+
+        compressDropZone.addEventListener('click', () => compressFileInput.click());
+        compressDropZone.addEventListener('dragover', (e) => { e.preventDefault(); compressDropZone.classList.add('dragover'); });
+        compressDropZone.addEventListener('dragleave', () => { compressDropZone.classList.remove('dragover'); });
+        compressDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            compressDropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) handleCompressFile(e.dataTransfer.files[0]);
+        });
+        compressFileInput.addEventListener('change', () => {
+            if (compressFileInput.files.length > 0) handleCompressFile(compressFileInput.files[0]);
+        });
+
+        function handleCompressFile(file) {
+            if (file.type !== 'application/pdf') {
+                alert(`El archivo "${file.name}" no es un PDF válido.`);
+                return;
+            }
+            selectedCompressFile = file;
+            compressFileInfo.style.display = 'block';
+            compressFileInfo.innerHTML = `📄 <strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            compressSubmitBtn.style.display = 'block';
+        }
+
+        compressSubmitBtn.addEventListener('click', async () => {
+            if (!selectedCompressFile) return;
+
+            compressLoading.style.display = 'block';
+            compressSubmitBtn.disabled = true;
+            compressResult.innerHTML = '';
+
+            try {
+                const arrayBuffer = await selectedCompressFile.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdfDocJs = await loadingTask.promise;
+                const numPages = pdfDocJs.numPages;
+
+                const { PDFDocument } = PDFLib;
+                const newPdfDoc = await PDFDocument.create();
+
+                for (let i = 1; i <= numPages; i++) {
+                    const page = await pdfDocJs.getPage(i);
+                    const viewport = page.getViewport({ scale: 1.2 }); // Escala balanceada para nitidez/peso
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+                    // Convertir a JPEG comprimido (calidad 0.75) para reducir drásticamente el tamaño
+                    const imgDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                    const imgBytes = await fetch(imgDataUrl).then((res) => res.arrayBuffer());
+
+                    const embeddedImage = await newPdfDoc.embedJpg(imgBytes);
+                    const newPage = newPdfDoc.addPage([viewport.width, viewport.height]);
+                    newPage.drawImage(embeddedImage, {
+                        x: 0,
+                        y: 0,
+                        width: viewport.width,
+                        height: viewport.height,
+                    });
+                }
+
+                const pdfBytes = await newPdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const downloadUrl = URL.createObjectURL(blob);
+                const newSizeMB = (blob.size / 1024 / 1024).toFixed(2);
+
+                compressLoading.style.display = 'none';
+                compressResult.innerHTML = `
+                    <p style="color: #2da44e; font-weight: bold; margin-bottom: 5px;">¡PDF comprimido con éxito!</p>
+                    <p style="font-size: 13px; color: #555; margin-bottom: 10px;">Nuevo peso aproximado: <strong>${newSizeMB} MB</strong></p>
+                    <a href="${downloadUrl}" class="btn-download" download="CampusLA_Comprimido_${Date.now()}.pdf">📥 Descargar PDF Comprimido</a>
+                `;
+                compressSubmitBtn.disabled = false;
+            } catch (error) {
+                compressLoading.style.display = 'none';
+                alert('Ocurrió un error al comprimir el PDF.');
+                compressSubmitBtn.disabled = false;
                 console.error(error);
             }
         });
