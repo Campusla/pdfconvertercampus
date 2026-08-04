@@ -115,7 +115,11 @@
                 for (let file of selectedFiles) {
                     const arrayBuffer = await file.arrayBuffer();
                     const pdf = await PDFDocument.load(arrayBuffer);
-                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPages().indices);
+                    
+                    // Corrección aplicada para generar los índices de las páginas de forma correcta
+                    const pageIndices = Array.from({ length: pdf.getPageCount() }, (_, i) => i);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pageIndices);
+                    
                     copiedPages.forEach((page) => mergedPdf.addPage(page));
                 }
 
