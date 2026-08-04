@@ -3,70 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unir PDF - CampusLA</title>
+    <title>Herramientas PDF - CampusLA</title>
     <!-- Importamos pdf-lib directamente desde un CDN para que corra en el navegador -->
     <script src="https://unpkg.com/pdf-lib@1.4.0/dist/pdf-lib.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; background: #f5f7fb; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .pdf-tool-container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 600px; box-sizing: border-box; }
+        .pdf-tool-container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 650px; box-sizing: border-box; }
+        
+        /* Navegación por pestañas */
+        .tabs { display: flex; border-bottom: 2px solid #e1e4e8; margin-bottom: 25px; gap: 10px; }
+        .tab-btn { background: none; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; color: #57606a; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab-btn.active { color: #1877f2; border-bottom-color: #1877f2; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
         h1 { color: #0f4c81; font-size: 22px; margin-top: 0; }
         p { color: #4b4f56; font-size: 14px; }
+        
         .drop-zone { border: 2px dashed #1877f2; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer; background: #f8fbff; transition: 0.3s; }
         .drop-zone:hover, .drop-zone.dragover { background: #f0f6ff; }
         .browse-btn { color: #1877f2; font-weight: bold; text-decoration: underline; }
+        
+        .file-info { margin: 15px 0; background: #f1f3f5; padding: 12px; border-radius: 6px; font-size: 13px; display: none; }
         .file-list { margin: 15px 0; max-height: 150px; overflow-y: auto; }
         .file-item { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
         .file-item button { background: none; border: none; cursor: pointer; }
-        .btn-primary, .btn-download { display: block; width: 100%; background: #1877f2; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; text-align: center; cursor: pointer; text-decoration: none; box-sizing: border-box; transition: 0.3s; }
+
+        .form-group { margin: 15px 0; display: none; }
+        label { display: block; font-weight: bold; color: #0f4c81; font-size: 13px; margin-bottom: 5px; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #d0d7de; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        
+        .btn-primary, .btn-download { display: block; width: 100%; background: #1877f2; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; text-align: center; cursor: pointer; text-decoration: none; box-sizing: border-box; transition: 0.3s; margin-top: 10px; }
         .btn-primary:hover, .btn-download:hover { background: #0f4c81; }
         .btn-primary:disabled { background: #cccccc; cursor: not-allowed; }
+        
         .loading { text-align: center; font-weight: bold; color: #1877f2; margin-top: 15px; }
         .result { margin-top: 20px; text-align: center; }
     </style>
 </head>
 <body>
     <div class="pdf-tool-container">
-        <h1>Unir Archivos PDF</h1>
-        <p>Combina múltiples archivos PDF en uno solo de forma rápida, segura y 100% en tu navegador.</p>
+        <!-- Pestañas de Navegación -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'splitTab')">Dividir / Extraer</button>
+            <button class="tab-btn" onclick="switchTab(event, 'mergeTab')">Unir PDFs</button>
+        </div>
 
-        <form id="uploadForm">
-            <div id="dropZone" class="drop-zone">
-                <p>Arrastra tus archivos PDF aquí o <span class="browse-btn">selecciona archivos</span></p>
-                <input type="file" id="fileInput" multiple accept="application/pdf" style="display: none;">
+        <!-- 1. SECCIÓN DIVIDIR / EXTRAER -->
+        <div id="splitTab" class="tab-content active">
+            <h1>Dividir o Extraer Páginas</h1>
+            <p>Selecciona las páginas específicas que deseas extraer de tu documento de forma 100% segura.</p>
+
+            <div id="splitDropZone" class="drop-zone">
+                <p>Arrastra tu PDF aquí o <span class="browse-btn">selecciona un archivo</span></p>
+                <input type="file" id="splitFileInput" accept="application/pdf" style="display: none;">
             </div>
             
-            <div id="fileList" class="file-list"></div>
-            
-            <button type="submit" id="submitBtn" class="btn-primary" disabled>Unir PDFs</button>
-        </form>
+            <div id="splitFileInfo" class="file-info"></div>
 
-        <div id="loading" class="loading" style="display: none;">Uniendo documentos en tu equipo... 🚀</div>
-        <div id="result" class="result"></div>
+            <div class="form-group" id="rangeGroup">
+                <label for="pageRange">Páginas a extraer (ej: 1-3, 5, 8-10):</label>
+                <input type="text" id="pageRange" placeholder="Ej: 1-3, 5">
+                <small id="pageHelp" style="color: #656d76;"></small>
+                <button type="button" id="splitSubmitBtn" class="btn-primary" disabled>Extraer Páginas</button>
+            </div>
+
+            <div id="splitLoading" class="loading" style="display: none;">Procesando páginas en tu equipo... 🚀</div>
+            <div id="splitResult" class="result"></div>
+        </div>
+
+        <!-- 2. SECCIÓN UNIR PDF -->
+        <div id="mergeTab" class="tab-content">
+            <h1>Unir Archivos PDF</h1>
+            <p>Combina múltiples archivos PDF en uno solo de forma rápida y segura.</p>
+
+            <form id="uploadForm">
+                <div id="mergeDropZone" class="drop-zone">
+                    <p>Arrastra tus archivos PDF aquí o <span class="browse-btn">selecciona archivos</span></p>
+                    <input type="file" id="mergeFileInput" multiple accept="application/pdf" style="display: none;">
+                </div>
+                
+                <div id="fileList" class="file-list"></div>
+                
+                <button type="submit" id="mergeSubmitBtn" class="btn-primary" disabled>Unir PDFs</button>
+            </form>
+
+            <div id="mergeLoading" class="loading" style="display: none;">Uniendo documentos en tu equipo... 🚀</div>
+            <div id="mergeResult" class="result"></div>
+        </div>
     </div>
 
     <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
+        // Control de pestañas
+        function switchTab(evt, tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        // --- LÓGICA DE DIVIDIR / EXTRAER ---
+        const splitDropZone = document.getElementById('splitDropZone');
+        const splitFileInput = document.getElementById('splitFileInput');
+        const splitFileInfo = document.getElementById('splitFileInfo');
+        const rangeGroup = document.getElementById('rangeGroup');
+        const pageRangeInput = document.getElementById('pageRange');
+        const pageHelp = document.getElementById('pageHelp');
+        const splitSubmitBtn = document.getElementById('splitSubmitBtn');
+        const splitLoading = document.getElementById('splitLoading');
+        const splitResult = document.getElementById('splitResult');
+
+        let selectedSplitFile = null;
+        let totalPages = 0;
+
+        splitDropZone.addEventListener('click', () => splitFileInput.click());
+        splitDropZone.addEventListener('dragover', (e) => { e.preventDefault(); splitDropZone.classList.add('dragover'); });
+        splitDropZone.addEventListener('dragleave', () => { splitDropZone.classList.remove('dragover'); });
+        splitDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            splitDropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) handleSplitFile(e.dataTransfer.files[0]);
+        });
+        splitFileInput.addEventListener('change', () => {
+            if (splitFileInput.files.length > 0) handleSplitFile(splitFileInput.files[0]);
+        });
+
+        async function handleSplitFile(file) {
+            if (file.type !== 'application/pdf') {
+                alert(`El archivo "${file.name}" no es un PDF válido.`);
+                return;
+            }
+            selectedSplitFile = file;
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const { PDFDocument } = PDFLib;
+                const pdfDoc = await PDFDocument.load(arrayBuffer);
+                totalPages = pdfDoc.getPageCount();
+
+                splitFileInfo.style.display = 'block';
+                splitFileInfo.innerHTML = `📄 <strong>${file.name}</strong> (${totalPages} ${totalPages === 1 ? 'página' : 'páginas'} en total)`;
+                
+                rangeGroup.style.display = 'block';
+                pageHelp.textContent = `Ingresa números o rangos válidos entre 1 y ${totalPages}.`;
+                splitSubmitBtn.disabled = false;
+            } catch (err) {
+                alert('No se pudo leer el archivo PDF.');
+                console.error(err);
+            }
+        }
+
+        splitSubmitBtn.addEventListener('click', async () => {
+            if (!selectedSplitFile) return;
+
+            const rangeText = pageRangeInput.value.trim();
+            if (!rangeText) {
+                alert('Por favor ingresa un rango de páginas válido.');
+                return;
+            }
+
+            splitLoading.style.display = 'block';
+            splitSubmitBtn.disabled = true;
+            splitResult.innerHTML = '';
+
+            try {
+                const arrayBuffer = await selectedSplitFile.arrayBuffer();
+                const { PDFDocument } = PDFLib;
+                const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+                let indicesToExtract = [];
+                const parts = rangeText.split(',');
+                
+                for (let part of parts) {
+                    part = part.trim();
+                    if (!part) continue;
+                    
+                    if (part.includes('-')) {
+                        const range = part.split('-');
+                        let start = parseInt(range[0].trim());
+                        let end = parseInt(range[1].trim());
+                        if (!isNaN(start) && !isNaN(end)) {
+                            let min = Math.min(start, end);
+                            let max = Math.max(start, end);
+                            for (let i = min; i <= max; i++) {
+                                if (i >= 1 && i <= totalPages) {
+                                    indicesToExtract.push(i - 1);
+                                }
+                            }
+                        }
+                    } else {
+                        let pageNum = parseInt(part);
+                        if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+                            indicesToExtract.push(pageNum - 1);
+                        }
+                    }
+                }
+
+                if (indicesToExtract.length === 0) {
+                    throw new Error(`Ninguna de las páginas indicadas es válida. El documento tiene ${totalPages} páginas.`);
+                }
+
+                const newPdf = await PDFDocument.create();
+                const copiedPages = await newPdf.copyPages(pdfDoc, indicesToExtract);
+                copiedPages.forEach((page) => newPdf.addPage(page));
+
+                const pdfBytes = await newPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const downloadUrl = URL.createObjectURL(blob);
+
+                splitLoading.style.display = 'none';
+                splitResult.innerHTML = `
+                    <p style="color: #2da44e; font-weight: bold; margin-bottom: 10px;">¡Páginas extraídas con éxito!</p>
+                    <a href="${downloadUrl}" class="btn-download" download="CampusLA_Extraido_${Date.now()}.pdf">📥 Descargar PDF Extraído</a>
+                `;
+                splitSubmitBtn.disabled = false;
+            } catch (error) {
+                splitLoading.style.display = 'none';
+                alert('Error: ' + error.message);
+                splitSubmitBtn.disabled = false;
+                console.error(error);
+            }
+        });
+
+        // --- LÓGICA DE UNIR PDF ---
+        const mergeDropZone = document.getElementById('mergeDropZone');
+        const mergeFileInput = document.getElementById('mergeFileInput');
         const fileList = document.getElementById('fileList');
-        const submitBtn = document.getElementById('submitBtn');
+        const mergeSubmitBtn = document.getElementById('mergeSubmitBtn');
         const uploadForm = document.getElementById('uploadForm');
-        const loading = document.getElementById('loading');
-        const resultDiv = document.getElementById('result');
+        const mergeLoading = document.getElementById('mergeLoading');
+        const mergeResult = document.getElementById('mergeResult');
 
         let selectedFiles = [];
 
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
-        dropZone.addEventListener('drop', (e) => {
+        mergeDropZone.addEventListener('click', () => mergeFileInput.click());
+        mergeDropZone.addEventListener('dragover', (e) => { e.preventDefault(); mergeDropZone.classList.add('dragover'); });
+        mergeDropZone.addEventListener('dragleave', () => { mergeDropZone.classList.remove('dragover'); });
+        mergeDropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
+            mergeDropZone.classList.remove('dragover');
+            handleMergeFiles(e.dataTransfer.files);
         });
+        mergeFileInput.addEventListener('change', () => handleMergeFiles(mergeFileInput.files));
 
-        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-
-        function handleFiles(files) {
+        function handleMergeFiles(files) {
             for (let file of files) {
                 if (file.type !== 'application/pdf') {
                     alert(`El archivo "${file.name}" no es un PDF válido.`);
@@ -80,7 +260,7 @@
         function updateFileList() {
             fileList.innerHTML = '';
             if (selectedFiles.length > 0) {
-                submitBtn.disabled = false;
+                mergeSubmitBtn.disabled = false;
                 selectedFiles.forEach((file, index) => {
                     const div = document.createElement('div');
                     div.className = 'file-item';
@@ -88,7 +268,7 @@
                     fileList.appendChild(div);
                 });
             } else {
-                submitBtn.disabled = true;
+                mergeSubmitBtn.disabled = true;
             }
         }
 
@@ -104,9 +284,9 @@
                 return;
             }
 
-            loading.style.display = 'block';
-            submitBtn.disabled = true;
-            resultDiv.innerHTML = '';
+            mergeLoading.style.display = 'block';
+            mergeSubmitBtn.disabled = true;
+            mergeResult.innerHTML = '';
 
             try {
                 const { PDFDocument } = PDFLib;
@@ -115,11 +295,8 @@
                 for (let file of selectedFiles) {
                     const arrayBuffer = await file.arrayBuffer();
                     const pdf = await PDFDocument.load(arrayBuffer);
-                    
-                    // Corrección aplicada para generar los índices de las páginas de forma correcta
                     const pageIndices = Array.from({ length: pdf.getPageCount() }, (_, i) => i);
                     const copiedPages = await mergedPdf.copyPages(pdf, pageIndices);
-                    
                     copiedPages.forEach((page) => mergedPdf.addPage(page));
                 }
 
@@ -127,12 +304,13 @@
                 const blob = new Blob([mergedPdfFileBytes], { type: 'application/pdf' });
                 const downloadUrl = URL.createObjectURL(blob);
 
-                loading.style.display = 'none';
-                resultDiv.innerHTML = `<a href="${downloadUrl}" class="btn-download" download="CampusLA_Unido_${Date.now()}.pdf">📥 Descargar PDF Unido</a>`;
+                mergeLoading.style.display = 'none';
+                mergeResult.innerHTML = `<a href="${downloadUrl}" class="btn-download" download="CampusLA_Unido_${Date.now()}.pdf">📥 Descargar PDF Unido</a>`;
+                mergeSubmitBtn.disabled = false;
             } catch (error) {
-                loading.style.display = 'none';
-                alert('Ocurrió un error al unir los PDFs en el navegador.');
-                submitBtn.disabled = false;
+                mergeLoading.style.display = 'none';
+                alert('Ocurrió un error al unir los PDFs.');
+                mergeSubmitBtn.disabled = false;
                 console.error(error);
             }
         });
