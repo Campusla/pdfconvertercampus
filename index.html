@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -43,8 +43,8 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN: Reemplaza esto con la URL exacta de tu backend en cPanel
-        const backendUrl = 'https://tudominio.com/ruta-backend/pdf-engine.php?action=merge';
+        // CONFIGURACIÓN: URL oficial de tu backend en el cPanel de CampusLA
+        const backendUrl = 'https://www.campuslatinoamerica.edu.co/pdf-engine.php?action=merge';
 
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -123,7 +123,6 @@
                 loading.style.display = 'none';
 
                 if (data.status === 'success') {
-                    // Si el backend devuelve ruta relativa, construimos la URL absoluta basada en el dominio del backend
                     const downloadFullUrl = new URL(data.download_url, backendUrl).href;
                     resultDiv.innerHTML = `<a href="${downloadFullUrl}" class="btn-download" download>📥 Descargar PDF Unido</a>`;
                 } else {
