@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unir PDF - CampusLA</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fb; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .pdf-tool-container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 600px; box-sizing: border-box; }
+        h1 { color: #0f4c81; font-size: 22px; margin-top: 0; }
+        p { color: #4b4f56; font-size: 14px; }
+        .drop-zone { border: 2px dashed #1877f2; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer; background: #f8fbff; transition: 0.3s; }
+        .drop-zone:hover, .drop-zone.dragover { background: #f0f6ff; }
+        .browse-btn { color: #1877f2; font-weight: bold; text-decoration: underline; }
+        .file-list { margin: 15px 0; max-height: 150px; overflow-y: auto; }
+        .file-item { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
+        .file-item button { background: none; border: none; cursor: pointer; }
+        .btn-primary, .btn-download { display: block; width: 100%; background: #1877f2; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; text-align: center; cursor: pointer; text-decoration: none; box-sizing: border-box; transition: 0.3s; }
+        .btn-primary:hover, .btn-download:hover { background: #0f4c81; }
+        .btn-primary:disabled { background: #cccccc; cursor: not-allowed; }
+        .loading { text-align: center; font-weight: bold; color: #1877f2; margin-top: 15px; }
+        .result { margin-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="pdf-tool-container">
+        <h1>Unir Archivos PDF</h1>
+        <p>Combina múltiples archivos PDF en uno solo de forma rápida, segura y gratuita.</p>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div id="dropZone" class="drop-zone">
+                <p>Arrastra tus archivos PDF aquí o <span class="browse-btn">selecciona archivos</span></p>
+                <input type="file" id="fileInput" name="pdf_files[]" multiple accept="application/pdf" style="display: none;">
+            </div>
+            
+            <div id="fileList" class="file-list"></div>
+            
+            <button type="submit" id="submitBtn" class="btn-primary" disabled>Unir PDFs</button>
+        </form>
+
+        <div id="loading" class="loading" style="display: none;">Procesando y uniendo documentos... ☕</div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN: Reemplaza esto con la URL exacta de tu backend en cPanel
+        const backendUrl = 'https://tudominio.com/ruta-backend/pdf-engine.php?action=merge';
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const loading = document.getElementById('loading');
+        const resultDiv = document.getElementById('result');
+
+        let selectedFiles = new DataTransfer();
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.type !== 'application/pdf') {
+                    alert(`El archivo "${file.name}" no es un PDF válido.`);
+                    continue;
+                }
+                selectedFiles.items.add(file);
+            }
+            fileInput.files = selectedFiles.files;
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            if (selectedFiles.files.length > 0) {
+                submitBtn.disabled = false;
+                Array.from(selectedFiles.files).forEach((file, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.innerHTML = `<span>📄 ${file.name}</span> <button type="button" onclick="removeFile(${index})">❌</button>`;
+                    fileList.appendChild(div);
+                });
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+
+        window.removeFile = function(index) {
+            let dt = new DataTransfer();
+            let files = selectedFiles.files;
+            for (let i = 0; i < files.length; i++) {
+                if (i !== index) dt.items.add(files[i]);
+            }
+            selectedFiles = dt;
+            fileInput.files = selectedFiles.files;
+            updateFileList();
+        }
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            resultDiv.innerHTML = '';
+
+            const formData = new FormData(uploadForm);
+
+            try {
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                loading.style.display = 'none';
+
+                if (data.status === 'success') {
+                    // Si el backend devuelve ruta relativa, construimos la URL absoluta basada en el dominio del backend
+                    const downloadFullUrl = new URL(data.download_url, backendUrl).href;
+                    resultDiv.innerHTML = `<a href="${downloadFullUrl}" class="btn-download" download>📥 Descargar PDF Unido</a>`;
+                } else {
+                    alert(data.message);
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                alert('Ocurrió un error al comunicarse con el servidor.');
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
