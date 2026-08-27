@@ -443,24 +443,65 @@
     </a>
 </div>
 <!-- FIN MINI SECCIÓN -->
+<!-- BLOQUE DE UTILIDADES DE GESTIÓN (CORRECCIÓN DE TEXTO / NÚMERO EN IMAGEN) -->
 <div id="cla-utilidades-gestion" style="background:#f8f9fa; border:1px solid #e4e6eb; border-radius:12px; padding:20px; margin-top:20px; font-family:Arial,sans-serif; box-sizing:border-box; width:100%;">
   <h3 style="color:#0f4c81; font-size:16px; margin:0 0 12px 0; border-bottom:2px solid #e4e6eb; padding-bottom:6px;">🛠️ Utilidades de Gestión (Navegador)</h3>
   
+  <!-- Pestañas de Navegación -->
   <div style="display:flex; gap:8px; margin-bottom:15px;">
-    <button type="button" id="btnTabPdf" onclick="openClaTab('toolPdfImg', this)" style="background:#1877f2; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Visor PDF / Img / Texto</button>
+    <button type="button" id="btnTabPdf" onclick="openClaTab('toolPdfImg', this)" style="background:#1877f2; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Corrector en Imagen</button>
     <button type="button" id="btnTabSign" onclick="openClaTab('toolSigner', this)" style="background:#e4e6eb; color:#333; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Creador de Firma y Nombre</button>
   </div>
 
+  <!-- 1. CORRECTOR DE NÚMEROS / LETRAS EN IMAGEN -->
   <div id="toolPdfImg" class="cla-tool-pane" style="display:block;">
-    <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Inspección local rápida de documentos, imágenes o texto plano sin salir del navegador.</p>
-    <div id="claDropZone" style="border:2px dashed #1877f2; border-radius:8px; padding:20px; text-align:center; cursor:pointer; background:#f0f6ff; font-size:13px;">
-      Arrastra tu archivo aquí o <span style="color:#1877f2; font-weight:bold;">búscalo en tu equipo</span>
-      <input type="file" id="claFileInput" accept="application/pdf,image/*,text/plain" style="display: none;">
+    <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Sube tu imagen, tapa el dato viejo con un parche y escribe el nuevo número o letra:</p>
+    <div id="claDropZone" style="border:2px dashed #1877f2; border-radius:8px; padding:15px; text-align:center; cursor:pointer; background:#f0f6ff; font-size:13px;">
+      Arrastra tu imagen aquí o <span style="color:#1877f2; font-weight:bold;">búscala en tu equipo</span>
+      <input type="file" id="claFileInput" accept="image/*" style="display: none;">
     </div>
     <div id="claFileResult" style="margin-top:8px; font-size:12px; color:#333; font-weight:bold;"></div>
-    <div id="claViewerPreview" style="margin-top:10px; text-align:center;"></div>
+    
+    <!-- Controles de Corrección -->
+    <div id="claEditorWorkspace" style="margin-top:12px; display:none; background:#fff; border:1px solid #d0d7de; border-radius:8px; padding:15px;">
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:12px;">
+        <div>
+          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Nuevo Número / Letra:</label>
+          <input type="text" id="claNewText" placeholder="Ej. 7 en vez de 3" style="width:100%; padding:6px; font-size:11px; border:1px solid #d0d7de; border-radius:4px; box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Color del Parche (Fondo):</label>
+          <input type="color" id="claPatchColor" value="#ffffff" style="width:100%; height:28px; border:1px solid #d0d7de; border-radius:4px; cursor:pointer; padding:0; background:none;">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Ancho del Parche: <span id="valW">40</span>px</label>
+          <input type="range" id="claPatchW" min="10" max="200" value="40" style="width:100%;">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Alto del Parche: <span id="valH">20</span>px</label>
+          <input type="range" id="claPatchH" min="10" max="100" value="20" style="width:100%;">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Posición X: <span id="valX">50</span>px</label>
+          <input type="range" id="claPosX" min="0" max="500" value="50" style="width:100%;">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Posición Y: <span id="valY">50</span>px</label>
+          <input type="range" id="claPosY" min="0" max="500" value="50" style="width:100%;">
+        </div>
+      </div>
+
+      <div style="text-align:center; background:#f6f8fa; padding:10px; border-radius:6px; overflow:auto; margin-bottom:10px;">
+        <canvas id="claImageCanvas" style="max-width:100%; height:auto; border:1px solid #ccc; border-radius:4px;"></canvas>
+      </div>
+
+      <div style="text-align:right;">
+        <button type="button" id="claDownloadCorrectedImg" style="background:#2da44e; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Descargar Imagen Corregida</button>
+      </div>
+    </div>
   </div>
 
+  <!-- 2. CREADOR DE FIRMA EN LÍNEA CON CAMPO DE NOMBRE -->
   <div id="toolSigner" class="cla-tool-pane" style="display:none;">
     <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Dibuja tu firma a pulso y añade opcionalmente tu nombre impreso:</p>
     
@@ -485,11 +526,10 @@
   </div>
 </div>
 
+<!-- SCRIPT DE CORRECCIÓN -->
 <script>
   function openClaTab(paneId, btnElement) {
-    document.querySelectorAll('.cla-tool-pane').forEach(pane => {
-      pane.style.display = 'none';
-    });
+    document.querySelectorAll('.cla-tool-pane').forEach(pane => pane.style.display = 'none');
     document.querySelectorAll('#btnTabPdf, #btnTabSign').forEach(btn => {
       btn.style.background = '#e4e6eb';
       btn.style.color = '#333';
@@ -499,35 +539,95 @@
     btnElement.style.color = '#fff';
   }
 
-  // Visor local
+  // Corrector en Imagen
   const dropZone = document.getElementById('claDropZone');
   const fileInput = document.getElementById('claFileInput');
   const fileResult = document.getElementById('claFileResult');
-  const previewContainer = document.getElementById('claViewerPreview');
+  const editorWorkspace = document.getElementById('claEditorWorkspace');
+  const imgCanvas = document.getElementById('claImageCanvas');
+  const ctxImg = imgCanvas.getContext('2d');
+  
+  const newText = document.getElementById('claNewText');
+  const patchColor = document.getElementById('claPatchColor');
+  const patchW = document.getElementById('claPatchW');
+  const patchH = document.getElementById('claPatchH');
+  const posX = document.getElementById('claPosX');
+  const posY = document.getElementById('claPosY');
+  
+  const valW = document.getElementById('valW');
+  const valH = document.getElementById('valH');
+  const valX = document.getElementById('valX');
+  const valY = document.getElementById('valY');
+
+  let loadedImage = new Image();
+  let originalFileName = "imagen_corregida.png";
 
   if(dropZone && fileInput) {
     dropZone.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if(!file) return;
-      fileResult.innerHTML = `📄 Archivo cargado: <strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB)`;
-      previewContainer.innerHTML = '';
+      originalFileName = file.name;
+      fileResult.innerHTML = `📄 Imagen cargada: <strong>${file.name}</strong>`;
+      editorWorkspace.style.display = 'block';
 
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          previewContainer.innerHTML = `<img src="${event.target.result}" style="max-width:100%; max-height:150px; border-radius:6px; border:1px solid #ccc;">`;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        loadedImage.onload = () => {
+          imgCanvas.width = loadedImage.naturalWidth;
+          imgCanvas.height = loadedImage.naturalHeight;
+          posX.max = loadedImage.naturalWidth;
+          posY.max = loadedImage.naturalHeight;
+          patchW.max = loadedImage.naturalWidth;
+          patchH.max = loadedImage.naturalHeight;
+          redrawImageCorrection();
         };
-        reader.readAsDataURL(file);
-      } else if (file.type === 'text/plain') {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          previewContainer.innerHTML = `<textarea style="width:100%; height:80px; font-size:11px; border:1px solid #ccc; border-radius:6px; padding:6px;" readonly>${event.target.result}</textarea>`;
-        };
-        reader.readAsText(file);
-      } else {
-        previewContainer.innerHTML = `<span style="font-size:11px; color:#666;">Archivo listo para gestión local en navegador.</span>`;
+        loadedImage.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function redrawImageCorrection() {
+      if(!loadedImage.src) return;
+      ctxImg.clearRect(0, 0, imgCanvas.width, imgCanvas.height);
+      ctxImg.drawImage(loadedImage, 0, 0);
+
+      const x = parseInt(posX.value);
+      const y = parseInt(posY.value);
+      const w = parseInt(patchW.value);
+      const h = parseInt(patchH.value);
+
+      // 1. Dibujar parche para tapar el texto viejo
+      ctxImg.fillStyle = patchColor.value;
+      ctxImg.fillRect(x, y, w, h);
+
+      // 2. Escribir el nuevo texto/número encima del parche
+      const text = newText.value;
+      if(text) {
+        ctxImg.font = 'bold 18px Arial';
+        ctxImg.fillStyle = '#000000'; // Letra negra para el nuevo texto
+        // Centrar un poco el texto dentro del parche
+        ctxImg.fillText(text, x + 4, y + (h / 2) + 6);
       }
+
+      valW.innerText = w;
+      valH.innerText = h;
+      valX.innerText = x;
+      valY.innerText = y;
+    }
+
+    newText.addEventListener('input', redrawImageCorrection);
+    patchColor.addEventListener('input', redrawImageCorrection);
+    patchW.addEventListener('input', redrawImageCorrection);
+    patchH.addEventListener('input', redrawImageCorrection);
+    posX.addEventListener('input', redrawImageCorrection);
+    posY.addEventListener('input', redrawImageCorrection);
+
+    document.getElementById('claDownloadCorrectedImg').addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = `Corregido_${originalFileName}`;
+      link.href = imgCanvas.toDataURL('image/png');
+      link.click();
     });
   }
 
