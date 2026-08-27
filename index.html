@@ -443,43 +443,60 @@
     </a>
 </div>
 <!-- FIN MINI SECCIÓN -->
-<div id="cla-dos-herramientas" style="background:#f8f9fa; border:1px solid #e4e6eb; border-radius:12px; padding:16px; margin:15px 0; font-family:Arial,sans-serif; box-sizing:border-box;">
-  <h3 style="color:#0f4c81; font-size:14px; margin:0 0 10px 0; border-bottom:2px solid #e4e6eb; padding-bottom:5px;">🛠️ Utilidades de Gestión (Navegador)</h3>
+<div id="cla-utilidades-gestion" style="background:#f8f9fa; border:1px solid #e4e6eb; border-radius:12px; padding:20px; margin-top:20px; font-family:Arial,sans-serif; box-sizing:border-box; width:100%;">
+  <h3 style="color:#0f4c81; font-size:16px; margin:0 0 12px 0; border-bottom:2px solid #e4e6eb; padding-bottom:6px;">🛠️ Utilidades de Gestión (Navegador)</h3>
   
-  <div style="display:flex; gap:6px; margin-bottom:12px;">
-    <button type="button" class="cla-tab-btn active" onclick="switchClaTool(event, 'toolPdfImg')" style="background:#1877f2; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">Visor PDF / Img / Texto</button>
-    <button type="button" class="cla-tab-btn" onclick="switchClaTool(event, 'toolSigner')" style="background:#e4e6eb; color:#333; border:none; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">Creador de Firma</button>
+  <div style="display:flex; gap:8px; margin-bottom:15px;">
+    <button type="button" id="btnTabPdf" onclick="openClaTab('toolPdfImg', this)" style="background:#1877f2; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Visor PDF / Img / Texto</button>
+    <button type="button" id="btnTabSign" onclick="openClaTab('toolSigner', this)" style="background:#e4e6eb; color:#333; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Creador de Firma y Nombre</button>
   </div>
 
-  <div id="toolPdfImg" class="cla-tool-content" style="display:block;">
-    <p style="margin:0 0 6px 0; color:#555; font-size:11px;">Inspección local rápida de documentos, imágenes o texto plano.</p>
-    <div id="claDropZone" style="border:2px dashed #1877f2; border-radius:6px; padding:12px; text-align:center; cursor:pointer; background:#f0f6ff; font-size:11px;">
-      Arrastra tu archivo aquí o <span style="color:#1877f2; font-weight:bold;">búscalo</span>
+  <div id="toolPdfImg" class="cla-tool-pane" style="display:block;">
+    <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Inspección local rápida de documentos, imágenes o texto plano sin salir del navegador.</p>
+    <div id="claDropZone" style="border:2px dashed #1877f2; border-radius:8px; padding:20px; text-align:center; cursor:pointer; background:#f0f6ff; font-size:13px;">
+      Arrastra tu archivo aquí o <span style="color:#1877f2; font-weight:bold;">búscalo en tu equipo</span>
       <input type="file" id="claFileInput" accept="application/pdf,image/*,text/plain" style="display: none;">
     </div>
-    <div id="claFileResult" style="margin-top:6px; font-size:11px; color:#333;"></div>
-    <div id="claViewerPreview" style="margin-top:8px; text-align:center;"></div>
+    <div id="claFileResult" style="margin-top:8px; font-size:12px; color:#333; font-weight:bold;"></div>
+    <div id="claViewerPreview" style="margin-top:10px; text-align:center;"></div>
   </div>
 
-  <div id="toolSigner" class="cla-tool-content" style="display:none;">
-    <p style="margin:0 0 6px 0; color:#555; font-size:11px;">Dibuja tu firma y descárgala en PNG con fondo transparente.</p>
-    <div style="border:1px solid #d0d7de; border-radius:6px; background:#ffffff; display:inline-block; width:100%; max-width:350px;">
-      <canvas id="claSigCanvas" width="350" height="110" style="display:block; width:100%; height:95px; cursor:crosshair; touch-action:none;"></canvas>
-    </div>
-    <div style="margin-top:5px; display:flex; gap:6px;">
-      <button type="button" id="claClearSig" style="background:#656d76; color:#fff; border:none; padding:4px 8px; border-radius:3px; font-size:10px; cursor:pointer;">Limpiar</button>
-      <button type="button" id="claDownloadSig" style="background:#2da44e; color:#fff; border:none; padding:4px 8px; border-radius:3px; font-size:10px; cursor:pointer;">Descargar PNG</button>
+  <div id="toolSigner" class="cla-tool-pane" style="display:none;">
+    <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Dibuja tu firma a pulso y añade opcionalmente tu nombre impreso:</p>
+    
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:15px; align-items:start;">
+      <div>
+        <label style="display:block; font-size:11px; color:#555; margin-bottom:4px; font-weight:bold;">Nombre Completo (Opcional para impresión debajo)</label>
+        <input type="text" id="claSignerName" placeholder="Ej. Juan Pérez" style="width:100%; padding:8px; font-size:12px; border:1px solid #d0d7de; border-radius:6px; box-sizing:border-box; margin-bottom:10px;">
+        
+        <div style="display:flex; gap:8px;">
+          <button type="button" id="claClearSig" style="background:#656d76; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Limpiar</button>
+          <button type="button" id="claDownloadSig" style="background:#2da44e; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Descargar PNG</button>
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block; font-size:11px; color:#555; margin-bottom:4px; font-weight:bold;">Área de Firma</label>
+        <div style="border:1px solid #d0d7de; border-radius:6px; background:#ffffff; display:inline-block; width:100%;">
+          <canvas id="claSigCanvas" width="400" height="120" style="display:block; width:100%; height:110px; cursor:crosshair; touch-action:none;"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  function switchClaTool(evt, toolId) {
-    document.querySelectorAll('.cla-tool-content').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.cla-tab-btn').forEach(el => { el.style.background = '#e4e6eb'; el.style.color = '#333'; });
-    document.getElementById(toolId).style.display = 'block';
-    evt.currentTarget.style.background = '#1877f2';
-    evt.currentTarget.style.color = '#fff';
+  function openClaTab(paneId, btnElement) {
+    document.querySelectorAll('.cla-tool-pane').forEach(pane => {
+      pane.style.display = 'none';
+    });
+    document.querySelectorAll('#btnTabPdf, #btnTabSign').forEach(btn => {
+      btn.style.background = '#e4e6eb';
+      btn.style.color = '#333';
+    });
+    document.getElementById(paneId).style.display = 'block';
+    btnElement.style.background = '#1877f2';
+    btnElement.style.color = '#fff';
   }
 
   // Visor local
@@ -488,60 +505,80 @@
   const fileResult = document.getElementById('claFileResult');
   const previewContainer = document.getElementById('claViewerPreview');
 
-  dropZone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    fileResult.innerHTML = `📄 <strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB)`;
-    previewContainer.innerHTML = '';
+  if(dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      fileResult.innerHTML = `📄 Archivo cargado: <strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB)`;
+      previewContainer.innerHTML = '';
 
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        previewContainer.innerHTML = `<img src="${event.target.result}" style="max-width:100%; max-height:120px; border-radius:4px; border:1px solid #ccc;">`;
-      };
-      reader.readAsDataURL(file);
-    } else if (file.type === 'text/plain') {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        previewContainer.innerHTML = `<textarea style="width:100%; height:70px; font-size:10px; border:1px solid #ccc; border-radius:4px; padding:4px;" readonly>${event.target.result}</textarea>`;
-      };
-      reader.readAsText(file);
-    } else {
-      previewContainer.innerHTML = `<span style="font-size:10px; color:#666;">Archivo listo para gestión local.</span>`;
-    }
-  });
-
-  // Canvas Firma
-  const canvas = document.getElementById('claSigCanvas');
-  const ctx = canvas.getContext('2d');
-  let isDrawing = false;
-
-  function getMousePos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    return { x: clientX - rect.left, y: clientY - rect.top };
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          previewContainer.innerHTML = `<img src="${event.target.result}" style="max-width:100%; max-height:150px; border-radius:6px; border:1px solid #ccc;">`;
+        };
+        reader.readAsDataURL(file);
+      } else if (file.type === 'text/plain') {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          previewContainer.innerHTML = `<textarea style="width:100%; height:80px; font-size:11px; border:1px solid #ccc; border-radius:6px; padding:6px;" readonly>${event.target.result}</textarea>`;
+        };
+        reader.readAsText(file);
+      } else {
+        previewContainer.innerHTML = `<span style="font-size:11px; color:#666;">Archivo listo para gestión local en navegador.</span>`;
+      }
+    });
   }
 
-  canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getMousePos(e); ctx.moveTo(p.x, p.y); });
-  canvas.addEventListener('mousemove', (e) => { if(!isDrawing) return; const p = getMousePos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-  window.addEventListener('mouseup', () => { isDrawing = false; });
+  // Canvas Firma con nombre opcional
+  const canvas = document.getElementById('claSigCanvas');
+  if(canvas) {
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
 
-  canvas.addEventListener('touchstart', (e) => { isDrawing = true; ctx.beginPath(); const p = getMousePos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); });
-  canvas.addEventListener('touchmove', (e) => { if(!isDrawing) return; const p = getMousePos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
-  window.addEventListener('touchend', () => { isDrawing = false; });
+    function getMousePos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
 
-  document.getElementById('claClearSig').addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
+    canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getMousePos(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove', (e) => { if(!isDrawing) return; const p = getMousePos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    window.addEventListener('mouseup', () => { isDrawing = false; });
 
-  document.getElementById('claDownloadSig').addEventListener('click', () => {
-    const link = document.createElement('a');
-    link.download = `Firma_CampusLA_${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  });
-</script>    
+    canvas.addEventListener('touchstart', (e) => { isDrawing = true; ctx.beginPath(); const p = getMousePos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); });
+    canvas.addEventListener('touchmove', (e) => { if(!isDrawing) return; const p = getMousePos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
+    window.addEventListener('touchend', () => { isDrawing = false; });
+
+    document.getElementById('claClearSig').addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    document.getElementById('claDownloadSig').addEventListener('click', () => {
+      const nameVal = document.getElementById('claSignerName').value.trim();
+      let exportCanvas = canvas;
+      
+      if(nameVal !== '') {
+        exportCanvas = document.createElement('canvas');
+        exportCanvas.width = canvas.width;
+        exportCanvas.height = canvas.height + 35;
+        const expCtx = exportCanvas.getContext('2d');
+        expCtx.fillStyle = '#ffffff';
+        expCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+        expCtx.drawImage(canvas, 0, 0);
+        expCtx.font = '13px Arial';
+        expCtx.fillStyle = '#333333';
+        expCtx.fillText(nameVal, 10, canvas.height + 22);
+      }
+
+      const link = document.createElement('a');
+      link.download = `Firma_${nameVal ? nameVal.replace(/\s+/g, '_') : 'CampusLA'}_${Date.now()}.png`;
+      link.href = exportCanvas.toDataURL('image/png');
+      link.click();
+    });
+  }
+</script>
 </body>
 </html>
