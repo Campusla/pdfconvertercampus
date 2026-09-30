@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herramientas PDF - CampusLA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Herramientas PDF y Utilidades - CampusLA</title>
     <!-- Importamos pdf-lib y pdf.js para el manejo y renderizado en el navegador -->
     <script src="https://unpkg.com/pdf-lib@1.4.0/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -11,43 +11,74 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     </script>
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f7fb; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .pdf-tool-container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 650px; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f7fb; color: #333; margin: 0; padding: 15px; display: flex; justify-content: center; box-sizing: border-box; }
+        .pdf-tool-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 650px; min-width: 280px; box-sizing: border-box; word-break: break-word; }
         
+        /* Estilos del Banner Publicitario Carrusel dinámico de Campañas CampusLA */
+        .cla-promo-banner { background: #fff; border: 1px solid #e1e4e8; border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); box-sizing: border-box; }
+        .cla-promo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        .cla-promo-badge { background: #0f4c81; color: #fff; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
+        .cla-promo-content { display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; }
+        .cla-promo-text h4 { margin: 0 0 4px 0; color: #1f2328; font-size: 14px; }
+        .cla-promo-text p { margin: 0; color: #57606a; font-size: 12px; line-height: 1.4; }
+        .cla-promo-btn { background: #f1e05a; color: #1f2328; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: bold; text-decoration: none; cursor: pointer; white-space: nowrap; transition: 0.3s; text-align: center; }
+        .cla-promo-btn:hover { background: #d4b830; }
+        .cla-carousel-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+        .cla-dot { width: 7px; height: 7px; border-radius: 50%; background: #d0d7de; cursor: pointer; transition: 0.3s; }
+        .cla-dot.active { background: #0f4c81; width: 16px; border-radius: 4px; }
+
         /* Navegación por pestañas */
-        .tabs { display: flex; border-bottom: 2px solid #e1e4e8; margin-bottom: 25px; gap: 10px; flex-wrap: wrap; }
-        .tab-btn { background: none; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; color: #57606a; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tabs { display: flex; border-bottom: 2px solid #e1e4e8; margin-bottom: 20px; gap: 8px; flex-wrap: wrap; }
+        .tab-btn { background: none; border: none; padding: 10px 12px; font-size: 13px; font-weight: bold; color: #57606a; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.3s; }
         .tab-btn.active { color: #1877f2; border-bottom-color: #1877f2; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        h1 { color: #0f4c81; font-size: 22px; margin-top: 0; }
-        p { color: #4b4f56; font-size: 14px; }
+        h1 { color: #0f4c81; font-size: 20px; margin-top: 0; }
+        p { color: #4b4f56; font-size: 13px; }
         
-        .drop-zone { border: 2px dashed #1877f2; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer; background: #f8fbff; transition: 0.3s; }
+        .drop-zone { border: 2px dashed #1877f2; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; background: #f8fbff; transition: 0.3s; box-sizing: border-box; }
         .drop-zone:hover, .drop-zone.dragover { background: #f0f6ff; }
         .browse-btn { color: #1877f2; font-weight: bold; text-decoration: underline; }
         
-        .file-info { margin: 15px 0; background: #f1f3f5; padding: 12px; border-radius: 6px; font-size: 13px; display: none; }
+        .file-info { margin: 15px 0; background: #f1f3f5; padding: 10px; border-radius: 6px; font-size: 13px; display: none; word-break: break-word; }
         .file-list { margin: 15px 0; max-height: 150px; overflow-y: auto; }
-        .file-item { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
+        .file-item { display: flex; justify-content: space-between; align-items: center; background: #f1f3f5; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; word-break: break-word; }
         .file-item button { background: none; border: none; cursor: pointer; }
 
         .form-group { margin: 15px 0; display: none; }
         label { display: block; font-weight: bold; color: #0f4c81; font-size: 13px; margin-bottom: 5px; }
         input[type="text"] { width: 100%; padding: 10px; border: 1px solid #d0d7de; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         
-        .btn-primary, .btn-download { display: block; width: 100%; background: #1877f2; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; text-align: center; cursor: pointer; text-decoration: none; box-sizing: border-box; transition: 0.3s; margin-top: 10px; }
+        .btn-primary, .btn-download { display: block; width: 100%; background: #1877f2; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; text-align: center; cursor: pointer; text-decoration: none; box-sizing: border-box; transition: 0.3s; margin-top: 10px; }
         .btn-primary:hover, .btn-download:hover { background: #0f4c81; }
         .btn-primary:disabled { background: #cccccc; cursor: not-allowed; }
         
-        .loading { text-align: center; font-weight: bold; color: #1877f2; margin-top: 15px; }
-        .result { margin-top: 20px; text-align: center; }
+        .loading { text-align: center; font-weight: bold; color: #1877f2; margin-top: 15px; font-size: 13px; }
+        .result { margin-top: 20px; text-align: center; word-break: break-word; }
     </style>
 </head>
 <body>
     <div class="pdf-tool-container">
-        <!-- Pestañas de Navegación -->
+        <!-- Banner Publicitario Carrusel dinámico basado en la Parrilla de Campañas CampusLA -->
+        <div class="cla-promo-banner">
+            <div class="cla-promo-header">
+                <span class="cla-promo-badge" id="claBadgeLabel">BLOQUE 1</span>
+                <span style="font-size: 11px; color: #8c959f;" id="claCounterLabel">1 de 6</span>
+            </div>
+            <div class="cla-promo-content">
+                <div class="cla-promo-text">
+                    <h4 id="claPromoTitle">¡Membresía VIP Activa & Credencial CampusLA!</h4>
+                    <p id="claPromoDesc">Pasaporte VIP, confirmación de registro y mapa de beneficios de la red.</p>
+                </div>
+                <a href="https://www.campuslatinoamerica.edu.co" target="_blank" id="claPromoLink" class="cla-promo-btn">Ver detalles y costos ↓</a>
+            </div>
+            <div class="cla-carousel-dots" id="claDotsContainer">
+                <!-- Se generan dinámicamente mediante JS -->
+            </div>
+        </div>
+
+        <!-- Pestañas de Navegación de PDF -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab(event, 'splitTab')">Dividir / Extraer</button>
             <button class="tab-btn" onclick="switchTab(event, 'mergeTab')">Unir PDFs</button>
@@ -116,7 +147,95 @@
     </div>
 
     <script>
-        // Control de pestañas
+        // --- LÓGICA DEL CARRUSEL DE CAMPAÑAS (Basado en la Parrilla de CampusLA) ---
+        const promoSlides = [
+            {
+                badge: "BLOQUE 1 • BIENVENIDA",
+                title: "¡Membresía VIP Activa & Credencial CampusLA!",
+                desc: "Pasaporte VIP, confirmación de registro y mapa de beneficios de la red.",
+                linkText: "Ir a CampusLA ↗",
+                url: "https://www.campuslatinoamerica.edu.co"
+            },
+            {
+                badge: "BLOQUE 1 • IA ESPECIALIZADA",
+                title: "Conoce a tus 8 Agentes de IA Especializados",
+                desc: "Presentación de la nómina de especialistas 24/7 (Oscar, Lucia, Cesar, Sarah, Stefania, Dario, Maria y Daniel).",
+                linkText: "Ver Agentes ↗",
+                url: "https://www.campuslatinoamerica.edu.co"
+            },
+            {
+                badge: "BLOQUE 2 • EDUCACIÓN EXPRÉS",
+                title: "Diplomados & Cursos Exprés: Certifica lo que ya sabes",
+                desc: "Certifica tus competencias urgentemente para convocatorias laborales o ascensos de forma rápida.",
+                linkText: "Ver Diplomados ↓",
+                url: "https://www.campuslatinoamerica.edu.co"
+            },
+            {
+                badge: "BLOQUE 3 • EXÁMENES HIGH LEVEL",
+                title: "Réplicas Exactas de Exámenes Internacionales",
+                desc: "Prepárate con Pearson VUE, TOEFL, TOEIC, Oxford, iTEP, Trinity y Linguaskill.",
+                linkText: "Ver Simuladores ↗",
+                url: "https://www.campuslatinoamerica.edu.co"
+            },
+            {
+                badge: "BLOQUE 4 • SOLUCIONES B2B",
+                title: "Capacitación Empresarial, IA & CRM Propio",
+                desc: "Implementa motores de IA en tu empresa y olvídate de pagar suscripciones mensuales de CRM.",
+                linkText: "Ver Soluciones B2B ↗",
+                url: "https://www.campuslatinoamerica.edu.co"
+            },
+            {
+                badge: "BLOQUE 5 & 6 • BENEFICIOS VIP",
+                title: "Seguros Campus, Abogada Lina IA & Becas",
+                desc: "Protección a tu medida, validación legal en segundos con cédula y buscador de becas activo.",
+                linkText: "Ver Beneficios ↗",
+                url: "https://www.campuslatinoamerica.edu.co"
+            }
+        ];
+
+        let currentPromoIndex = 0;
+        let promoTimer = null;
+
+        function initPromoCarouselDots() {
+            const dotsContainer = document.getElementById('claDotsContainer');
+            dotsContainer.innerHTML = '';
+            promoSlides.forEach((_, idx) => {
+                const dot = document.createElement('span');
+                dot.className = `cla-dot ${idx === 0 ? 'active' : ''}`;
+                dot.onclick = () => setPromoSlide(idx);
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function setPromoSlide(index) {
+            currentPromoIndex = index;
+            const slide = promoSlides[index];
+            document.getElementById('claBadgeLabel').textContent = slide.badge;
+            document.getElementById('claCounterLabel').textContent = `${index + 1} de ${promoSlides.length}`;
+            document.getElementById('claPromoTitle').textContent = slide.title;
+            document.getElementById('claPromoDesc').textContent = slide.desc;
+            const btn = document.getElementById('claPromoLink');
+            btn.textContent = slide.linkText;
+            btn.href = slide.url;
+
+            const dots = document.querySelectorAll('.cla-dot');
+            dots.forEach((dot, idx) => {
+                if (idx === index) dot.classList.add('active');
+                else dot.classList.remove('active');
+            });
+        }
+
+        function startPromoCarousel() {
+            initPromoCarouselDots();
+            promoTimer = setInterval(() => {
+                currentPromoIndex = (currentPromoIndex + 1) % promoSlides.length;
+                setPromoSlide(currentPromoIndex);
+            }, 10000); // Rota cada 10 segundos
+        }
+
+        startPromoCarousel();
+
+        // Control de pestañas de PDF
         function switchTab(evt, tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -388,7 +507,7 @@
 
                 for (let i = 1; i <= numPages; i++) {
                     const page = await pdfDocJs.getPage(i);
-                    const viewport = page.getViewport({ scale: 1.2 }); // Escala balanceada para nitidez/peso
+                    const viewport = page.getViewport({ scale: 1.2 });
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
@@ -396,7 +515,6 @@
 
                     await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-                    // Convertir a JPEG comprimido (calidad 0.75) para reducir drásticamente el tamaño
                     const imgDataUrl = canvas.toDataURL('image/jpeg', 0.75);
                     const imgBytes = await fetch(imgDataUrl).then((res) => res.arrayBuffer());
 
@@ -430,255 +548,326 @@
             }
         });
     </script>
+
     <!-- MINI SECCIÓN RECURSOS EXTERNOS (ILOVEPDF) -->
-<div style="max-width: 650px; margin: 20px auto 0 auto; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; text-align: center; box-sizing: border-box; font-family: Arial, sans-serif;">
-    <h3 style="color: #f97316; font-size: 16px; text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 0.5px;">
-        🚀 Utilidad Externa Recomendada
-    </h3>
-    <p style="color: #94a3b8; font-size: 13px; margin: 0 0 15px 0; line-height: 1.4;">
-        ¿Necesitas procesamiento masivo adicional? Visita i LOVE PDF.
-    </p>
-    <a href="https://www.ilovepdf.com/es" target="_blank" rel="noopener noreferrer" style="background-color: #f97316; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase; display: inline-block; transition: background 0.3s ease;">
-        Ir a iLovePDF ↗
-    </a>
-</div>
-<!-- FIN MINI SECCIÓN -->
-<!-- BLOQUE DE UTILIDADES DE GESTIÓN (CORRECCIÓN DE TEXTO / NÚMERO EN IMAGEN) -->
-<div id="cla-utilidades-gestion" style="background:#f8f9fa; border:1px solid #e4e6eb; border-radius:12px; padding:20px; margin-top:20px; font-family:Arial,sans-serif; box-sizing:border-box; width:100%;">
-  <h3 style="color:#0f4c81; font-size:16px; margin:0 0 12px 0; border-bottom:2px solid #e4e6eb; padding-bottom:6px;">🛠️ Utilidades de Gestión (Navegador)</h3>
-  
-  <!-- Pestañas de Navegación -->
-  <div style="display:flex; gap:8px; margin-bottom:15px;">
-    <button type="button" id="btnTabPdf" onclick="openClaTab('toolPdfImg', this)" style="background:#1877f2; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Corrector en Imagen</button>
-    <button type="button" id="btnTabSign" onclick="openClaTab('toolSigner', this)" style="background:#e4e6eb; color:#333; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Creador de Firma y Nombre</button>
-  </div>
-
-  <!-- 1. CORRECTOR DE NÚMEROS / LETRAS EN IMAGEN -->
-  <div id="toolPdfImg" class="cla-tool-pane" style="display:block;">
-    <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Sube tu imagen, tapa el dato viejo con un parche y escribe el nuevo número o letra:</p>
-    <div id="claDropZone" style="border:2px dashed #1877f2; border-radius:8px; padding:15px; text-align:center; cursor:pointer; background:#f0f6ff; font-size:13px;">
-      Arrastra tu imagen aquí o <span style="color:#1877f2; font-weight:bold;">búscala en tu equipo</span>
-      <input type="file" id="claFileInput" accept="image/*" style="display: none;">
+    <div style="max-width: 650px; min-width: 280px; margin: 20px auto 0 auto; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; text-align: center; box-sizing: border-box; font-family: Arial, sans-serif; word-break: break-word;">
+        <h3 style="color: #f97316; font-size: 15px; text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 0.5px;">
+            🚀 Utilidad Externa Recomendada
+        </h3>
+        <p style="color: #94a3b8; font-size: 13px; margin: 0 0 15px 0; line-height: 1.4;">
+            ¿Necesitas procesamiento masivo adicional? Visita iLOVEPDF.
+        </p>
+        <a href="https://www.ilovepdf.com/es" target="_blank" rel="noopener noreferrer" style="background-color: #f97316; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase; display: inline-block; transition: background 0.3s ease;">
+            Ir a iLovePDF ↗
+        </a>
     </div>
-    <div id="claFileResult" style="margin-top:8px; font-size:12px; color:#333; font-weight:bold;"></div>
-    
-    <!-- Controles de Corrección -->
-    <div id="claEditorWorkspace" style="margin-top:12px; display:none; background:#fff; border:1px solid #d0d7de; border-radius:8px; padding:15px;">
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:12px;">
-        <div>
-          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Nuevo Número / Letra:</label>
-          <input type="text" id="claNewText" placeholder="Ej. 7 en vez de 3" style="width:100%; padding:6px; font-size:11px; border:1px solid #d0d7de; border-radius:4px; box-sizing:border-box;">
-        </div>
-        <div>
-          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Color del Parche (Fondo):</label>
-          <input type="color" id="claPatchColor" value="#ffffff" style="width:100%; height:28px; border:1px solid #d0d7de; border-radius:4px; cursor:pointer; padding:0; background:none;">
-        </div>
-        <div>
-          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Ancho del Parche: <span id="valW">40</span>px</label>
-          <input type="range" id="claPatchW" min="10" max="200" value="40" style="width:100%;">
-        </div>
-        <div>
-          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Alto del Parche: <span id="valH">20</span>px</label>
-          <input type="range" id="claPatchH" min="10" max="100" value="20" style="width:100%;">
-        </div>
-        <div>
-          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Posición X: <span id="valX">50</span>px</label>
-          <input type="range" id="claPosX" min="0" max="500" value="50" style="width:100%;">
-        </div>
-        <div>
-          <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Posición Y: <span id="valY">50</span>px</label>
-          <input type="range" id="claPosY" min="0" max="500" value="50" style="width:100%;">
-        </div>
-      </div>
 
-      <div style="text-align:center; background:#f6f8fa; padding:10px; border-radius:6px; overflow:auto; margin-bottom:10px;">
-        <canvas id="claImageCanvas" style="max-width:100%; height:auto; border:1px solid #ccc; border-radius:4px;"></canvas>
-      </div>
-
-      <div style="text-align:right;">
-        <button type="button" id="claDownloadCorrectedImg" style="background:#2da44e; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Descargar Imagen Corregida</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. CREADOR DE FIRMA EN LÍNEA CON CAMPO DE NOMBRE -->
-  <div id="toolSigner" class="cla-tool-pane" style="display:none;">
-    <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Dibuja tu firma a pulso y añade opcionalmente tu nombre impreso:</p>
-    
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:15px; align-items:start;">
-      <div>
-        <label style="display:block; font-size:11px; color:#555; margin-bottom:4px; font-weight:bold;">Nombre Completo (Opcional para impresión debajo)</label>
-        <input type="text" id="claSignerName" placeholder="Ej. Juan Pérez" style="width:100%; padding:8px; font-size:12px; border:1px solid #d0d7de; border-radius:6px; box-sizing:border-box; margin-bottom:10px;">
-        
-        <div style="display:flex; gap:8px;">
-          <button type="button" id="claClearSig" style="background:#656d76; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Limpiar</button>
-          <button type="button" id="claDownloadSig" style="background:#2da44e; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Descargar PNG</button>
-        </div>
-      </div>
-
-      <div>
-        <label style="display:block; font-size:11px; color:#555; margin-bottom:4px; font-weight:bold;">Área de Firma</label>
-        <div style="border:1px solid #d0d7de; border-radius:6px; background:#ffffff; display:inline-block; width:100%;">
-          <canvas id="claSigCanvas" width="400" height="120" style="display:block; width:100%; height:110px; cursor:crosshair; touch-action:none;"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SCRIPT DE CORRECCIÓN -->
-<script>
-  function openClaTab(paneId, btnElement) {
-    document.querySelectorAll('.cla-tool-pane').forEach(pane => pane.style.display = 'none');
-    document.querySelectorAll('#btnTabPdf, #btnTabSign').forEach(btn => {
-      btn.style.background = '#e4e6eb';
-      btn.style.color = '#333';
-    });
-    document.getElementById(paneId).style.display = 'block';
-    btnElement.style.background = '#1877f2';
-    btnElement.style.color = '#fff';
-  }
-
-  // Corrector en Imagen
-  const dropZone = document.getElementById('claDropZone');
-  const fileInput = document.getElementById('claFileInput');
-  const fileResult = document.getElementById('claFileResult');
-  const editorWorkspace = document.getElementById('claEditorWorkspace');
-  const imgCanvas = document.getElementById('claImageCanvas');
-  const ctxImg = imgCanvas.getContext('2d');
-  
-  const newText = document.getElementById('claNewText');
-  const patchColor = document.getElementById('claPatchColor');
-  const patchW = document.getElementById('claPatchW');
-  const patchH = document.getElementById('claPatchH');
-  const posX = document.getElementById('claPosX');
-  const posY = document.getElementById('claPosY');
-  
-  const valW = document.getElementById('valW');
-  const valH = document.getElementById('valH');
-  const valX = document.getElementById('valX');
-  const valY = document.getElementById('valY');
-
-  let loadedImage = new Image();
-  let originalFileName = "imagen_corregida.png";
-
-  if(dropZone && fileInput) {
-    dropZone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if(!file) return;
-      originalFileName = file.name;
-      fileResult.innerHTML = `📄 Imagen cargada: <strong>${file.name}</strong>`;
-      editorWorkspace.style.display = 'block';
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        loadedImage.onload = () => {
-          imgCanvas.width = loadedImage.naturalWidth;
-          imgCanvas.height = loadedImage.naturalHeight;
-          posX.max = loadedImage.naturalWidth;
-          posY.max = loadedImage.naturalHeight;
-          patchW.max = loadedImage.naturalWidth;
-          patchH.max = loadedImage.naturalHeight;
-          redrawImageCorrection();
-        };
-        loadedImage.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    function redrawImageCorrection() {
-      if(!loadedImage.src) return;
-      ctxImg.clearRect(0, 0, imgCanvas.width, imgCanvas.height);
-      ctxImg.drawImage(loadedImage, 0, 0);
-
-      const x = parseInt(posX.value);
-      const y = parseInt(posY.value);
-      const w = parseInt(patchW.value);
-      const h = parseInt(patchH.value);
-
-      // 1. Dibujar parche para tapar el texto viejo
-      ctxImg.fillStyle = patchColor.value;
-      ctxImg.fillRect(x, y, w, h);
-
-      // 2. Escribir el nuevo texto/número encima del parche
-      const text = newText.value;
-      if(text) {
-        ctxImg.font = 'bold 18px Arial';
-        ctxImg.fillStyle = '#000000'; // Letra negra para el nuevo texto
-        // Centrar un poco el texto dentro del parche
-        ctxImg.fillText(text, x + 4, y + (h / 2) + 6);
-      }
-
-      valW.innerText = w;
-      valH.innerText = h;
-      valX.innerText = x;
-      valY.innerText = y;
-    }
-
-    newText.addEventListener('input', redrawImageCorrection);
-    patchColor.addEventListener('input', redrawImageCorrection);
-    patchW.addEventListener('input', redrawImageCorrection);
-    patchH.addEventListener('input', redrawImageCorrection);
-    posX.addEventListener('input', redrawImageCorrection);
-    posY.addEventListener('input', redrawImageCorrection);
-
-    document.getElementById('claDownloadCorrectedImg').addEventListener('click', () => {
-      const link = document.createElement('a');
-      link.download = `Corregido_${originalFileName}`;
-      link.href = imgCanvas.toDataURL('image/png');
-      link.click();
-    });
-  }
-
-  // Canvas Firma con nombre opcional
-  const canvas = document.getElementById('claSigCanvas');
-  if(canvas) {
-    const ctx = canvas.getContext('2d');
-    let isDrawing = false;
-
-    function getMousePos(e) {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-      return { x: clientX - rect.left, y: clientY - rect.top };
-    }
-
-    canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getMousePos(e); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('mousemove', (e) => { if(!isDrawing) return; const p = getMousePos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-    window.addEventListener('mouseup', () => { isDrawing = false; });
-
-    canvas.addEventListener('touchstart', (e) => { isDrawing = true; ctx.beginPath(); const p = getMousePos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); });
-    canvas.addEventListener('touchmove', (e) => { if(!isDrawing) return; const p = getMousePos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
-    window.addEventListener('touchend', () => { isDrawing = false; });
-
-    document.getElementById('claClearSig').addEventListener('click', () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    });
-
-    document.getElementById('claDownloadSig').addEventListener('click', () => {
-      const nameVal = document.getElementById('claSignerName').value.trim();
-      let exportCanvas = canvas;
+    <!-- BLOQUE DE UTILIDADES DE GESTIÓN (CORRECCIÓN DE TEXTO / NÚMERO EN IMAGEN Y FIRMA) -->
+    <div id="cla-utilidades-gestion" style="background:#f8f9fa; border:1px solid #e4e6eb; border-radius:12px; padding:20px; margin-top:20px; font-family:Arial,sans-serif; box-sizing:border-box; width:100%; max-width:650px; min-width:280px; margin-left:auto; margin-right:auto; word-break: break-word;">
+        <h3 style="color:#0f4c81; font-size:15px; margin:0 0 12px 0; border-bottom:2px solid #e4e6eb; padding-bottom:6px;">🛠️ Utilidades de Gestión (Navegador)</h3>
       
-      if(nameVal !== '') {
-        exportCanvas = document.createElement('canvas');
-        exportCanvas.width = canvas.width;
-        exportCanvas.height = canvas.height + 35;
-        const expCtx = exportCanvas.getContext('2d');
-        expCtx.fillStyle = '#ffffff';
-        expCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-        expCtx.drawImage(canvas, 0, 0);
-        expCtx.font = '13px Arial';
-        expCtx.fillStyle = '#333333';
-        expCtx.fillText(nameVal, 10, canvas.height + 22);
-      }
+        <!-- Pestañas de Navegación -->
+        <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+            <button type="button" id="btnTabPdf" onclick="openClaTab('toolPdfImg', this)" style="background:#1877f2; color:#fff; border:none; padding:8px 14px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Corrector en Imagen</button>
+            <button type="button" id="btnTabSign" onclick="openClaTab('toolSigner', this)" style="background:#e4e6eb; color:#333; border:none; padding:8px 14px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Creador de Firma</button>
+        </div>
 
-      const link = document.createElement('a');
-      link.download = `Firma_${nameVal ? nameVal.replace(/\s+/g, '_') : 'CampusLA'}_${Date.now()}.png`;
-      link.href = exportCanvas.toDataURL('image/png');
-      link.click();
-    });
-  }
-</script>
+        <!-- 1. CORRECTOR DE NÚMEROS / LETRAS EN IMAGEN -->
+        <div id="toolPdfImg" class="cla-tool-pane" style="display:block;">
+            <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Sube tu imagen, tapa el dato viejo con un parche y escribe el nuevo número o letra:</p>
+            <div id="claDropZone" style="border:2px dashed #1877f2; border-radius:8px; padding:15px; text-align:center; cursor:pointer; background:#f0f6ff; font-size:13px; box-sizing:border-box;">
+                Arrastra tu imagen aquí o <span style="color:#1877f2; font-weight:bold;">búscala en tu equipo</span>
+                <input type="file" id="claFileInput" accept="image/*" style="display: none;">
+            </div>
+            <div id="claFileResult" style="margin-top:8px; font-size:12px; color:#333; font-weight:bold;"></div>
+            
+            <!-- Controles de Corrección -->
+            <div id="claEditorWorkspace" style="margin-top:12px; display:none; background:#fff; border:1px solid #d0d7de; border-radius:8px; padding:15px; box-sizing:border-box;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Nuevo Número / Letra:</label>
+                        <input type="text" id="claNewText" placeholder="Ej. 7 en vez de 3" style="width:100%; padding:6px; font-size:12px; border:1px solid #d0d7de; border-radius:4px; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Color del Parche (Fondo):</label>
+                        <input type="color" id="claPatchColor" value="#ffffff" style="width:100%; height:32px; border:1px solid #d0d7de; border-radius:4px; cursor:pointer; padding:0; background:none;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Ancho del Parche: <span id="valW">40</span>px</label>
+                        <input type="range" id="claPatchW" min="10" max="200" value="40" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Alto del Parche: <span id="valH">20</span>px</label>
+                        <input type="range" id="claPatchH" min="10" max="100" value="20" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Posición X: <span id="valX">50</span>px</label>
+                        <input type="range" id="claPosX" min="0" max="500" value="50" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px;">Posición Y: <span id="valY">50</span>px</label>
+                        <input type="range" id="claPosY" min="0" max="500" value="50" style="width:100%;">
+                    </div>
+                </div>
+
+                <div style="text-align:center; background:#f6f8fa; padding:10px; border-radius:6px; overflow:auto; margin-bottom:10px; box-sizing:border-box;">
+                    <canvas id="claImageCanvas" style="max-width:100%; height:auto; border:1px solid #ccc; border-radius:4px; display:block; margin:0 auto;"></canvas>
+                </div>
+
+                <div style="text-align:right;">
+                    <button type="button" id="claDownloadCorrectedImg" style="background:#2da44e; color:#fff; border:none; padding:8px 14px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; width:100%;">Descargar Imagen Corregida</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CREADOR DE FIRMA EN LÍNEA -->
+        <div id="toolSigner" class="cla-tool-pane" style="display:none;">
+            <p style="margin:0 0 8px 0; color:#555; font-size:12px;">Dibuja tu firma a pulso y añade opcionalmente tu nombre impreso:</p>
+            
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:15px; align-items:start;">
+                <div>
+                    <label style="display:block; font-size:11px; color:#555; margin-bottom:4px; font-weight:bold;">Nombre Completo (Opcional)</label>
+                    <input type="text" id="claSignerName" placeholder="Ej. Juan Pérez" style="width:100%; padding:8px; font-size:13px; border:1px solid #d0d7de; border-radius:6px; box-sizing:border-box; margin-bottom:10px;">
+                    
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" id="claClearSig" style="background:#656d76; color:#fff; border:none; padding:8px 14px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; flex:1;">Limpiar</button>
+                        <button type="button" id="claDownloadSig" style="background:#2da44e; color:#fff; border:none; padding:8px 14px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; flex:1;">Descargar PNG</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:11px; color:#555; margin-bottom:4px; font-weight:bold;">Área de Firma</label>
+                    <div style="border:1px solid #d0d7de; border-radius:6px; background:#ffffff; display:block; width:100%; box-sizing:border-box;">
+                        <canvas id="claSigCanvas" style="display:block; width:100%; height:120px; cursor:crosshair; touch-action:none;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE CORRECCIÓN DE IMAGEN Y FIRMA BLINDADO PARA IPHONE -->
+    <script>
+        function openClaTab(paneId, btnElement) {
+            document.querySelectorAll('.cla-tool-pane').forEach(pane => pane.style.display = 'none');
+            document.querySelectorAll('#btnTabPdf, #btnTabSign').forEach(btn => {
+                btn.style.background = '#e4e6eb';
+                btn.style.color = '#333';
+            });
+            document.getElementById(paneId).style.display = 'block';
+            btnElement.style.background = '#1877f2';
+            btnElement.style.color = '#fff';
+            if(paneId === 'toolSigner') initSigCanvas();
+            if(paneId === 'toolPdfImg' && loadedImage.src) redrawImageCorrection();
+        }
+
+        // Corrector en Imagen
+        const dropZone = document.getElementById('claDropZone');
+        const fileInput = document.getElementById('claFileInput');
+        const fileResult = document.getElementById('claFileResult');
+        const editorWorkspace = document.getElementById('claEditorWorkspace');
+        const imgCanvas = document.getElementById('claImageCanvas');
+        const ctxImg = imgCanvas.getContext('2d');
+        
+        const newText = document.getElementById('claNewText');
+        const patchColor = document.getElementById('claPatchColor');
+        const patchW = document.getElementById('claPatchW');
+        const patchH = document.getElementById('claPatchH');
+        const posX = document.getElementById('claPosX');
+        const posY = document.getElementById('claPosY');
+        
+        const valW = document.getElementById('valW');
+        const valH = document.getElementById('valH');
+        const valX = document.getElementById('valX');
+        const valY = document.getElementById('valY');
+        const claDownloadCorrectedImg = document.getElementById('claDownloadCorrectedImg');
+
+        let loadedImage = new Image();
+        let originalFileName = "imagen_corregida.png";
+
+        if(dropZone && fileInput) {
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if(!file) return;
+                originalFileName = file.name;
+                fileResult.innerHTML = `📄 Imagen cargada: <strong>${file.name}</strong>`;
+                editorWorkspace.style.display = 'block';
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    loadedImage.onload = () => {
+                        imgCanvas.width = loadedImage.naturalWidth;
+                        imgCanvas.height = loadedImage.naturalHeight;
+                        posX.max = loadedImage.naturalWidth;
+                        posY.max = loadedImage.naturalHeight;
+                        patchW.max = loadedImage.naturalWidth;
+                        patchH.max = loadedImage.naturalHeight;
+                        redrawImageCorrection();
+                    };
+                    loadedImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            const updateInputs = () => {
+                valW.textContent = patchW.value;
+                valH.textContent = patchH.value;
+                valX.textContent = posX.value;
+                valY.textContent = posY.value;
+                redrawImageCorrection();
+            };
+
+            [patchW, patchH, posX, posY, newText, patchColor].forEach(el => {
+                el.addEventListener('input', updateInputs);
+            });
+        }
+
+        function redrawImageCorrection() {
+            if(!loadedImage.src) return;
+            ctxImg.clearRect(0, 0, imgCanvas.width, imgCanvas.height);
+            ctxImg.drawImage(loadedImage, 0, 0);
+
+            const x = parseInt(posX.value);
+            const y = parseInt(posY.value);
+            const w = parseInt(patchW.value);
+            const h = parseInt(patchH.value);
+
+            // 1. Dibujar parche para tapar texto viejo
+            ctxImg.fillStyle = patchColor.value;
+            ctxImg.fillRect(x, y, w, h);
+
+            // 2. Escribir texto nuevo centrado en el parche
+            const text = newText.value.trim();
+            if(text) {
+                ctxImg.fillStyle = '#000000';
+                let fontSize = Math.floor(h * 0.7);
+                if(fontSize < 10) fontSize = 10;
+                ctxImg.font = `bold ${fontSize}px Arial`;
+                ctxImg.textBaseline = 'middle';
+                ctxImg.textAlign = 'center';
+                ctxImg.fillText(text, x + (w / 2), y + (h / 2));
+            }
+        }
+
+        if(claDownloadCorrectedImg) {
+            claDownloadCorrectedImg.addEventListener('click', () => {
+                if(!loadedImage.src) return;
+                const link = document.createElement('a');
+                link.download = `Corregido_${Date.now()}.png`;
+                link.href = imgCanvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // Creador de Firma Blindado para iPhone (devicePixelRatio)
+        let sigInitialized = false;
+        function initSigCanvas() {
+            const sigCanvas = document.getElementById('claSigCanvas');
+            if(!sigCanvas || sigInitialized) return;
+            sigInitialized = true;
+
+            const sigCtx = sigCanvas.getContext('2d');
+            const ratio = window.devicePixelRatio || 1;
+            
+            const rect = sigCanvas.getBoundingClientRect();
+            sigCanvas.width = rect.width * ratio;
+            sigCanvas.height = rect.height * ratio;
+            sigCtx.scale(ratio, ratio);
+
+            let isDrawing = false;
+
+            function getPos(e) {
+                const r = sigCanvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - r.left,
+                    y: clientY - r.top
+                };
+            }
+
+            function startDraw(e) {
+                e.preventDefault();
+                isDrawing = true;
+                const pos = getPos(e);
+                sigCtx.beginPath();
+                sigCtx.moveTo(pos.x, pos.y);
+            }
+
+            function draw(e) {
+                if(!isDrawing) return;
+                e.preventDefault();
+                const pos = getPos(e);
+                sigCtx.lineTo(pos.x, pos.y);
+                sigCtx.strokeStyle = '#000000';
+                sigCtx.lineWidth = 2.5;
+                sigCtx.lineCap = 'round';
+                sigCtx.lineJoin = 'round';
+                sigCtx.stroke();
+            }
+
+            function stopDraw(e) {
+                if(!isDrawing) return;
+                e.preventDefault();
+                isDrawing = false;
+            }
+
+            sigCanvas.addEventListener('mousedown', startDraw);
+            sigCanvas.addEventListener('mousemove', draw);
+            sigCanvas.addEventListener('mouseup', stopDraw);
+            sigCanvas.addEventListener('mouseleave', stopDraw);
+
+            sigCanvas.addEventListener('touchstart', startDraw, { passive: false });
+            sigCanvas.addEventListener('touchmove', draw, { passive: false });
+            sigCanvas.addEventListener('touchend', stopDraw, { passive: false });
+
+            document.getElementById('claClearSig').addEventListener('click', () => {
+                sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            });
+
+            document.getElementById('claDownloadSig').addEventListener('click', () => {
+                const nameInput = document.getElementById('claSignerName').value.trim();
+                if(!nameInput) {
+                    const link = document.createElement('a');
+                    link.download = `Firma_${Date.now()}.png`;
+                    link.href = sigCanvas.toDataURL('image/png');
+                    link.click();
+                    return;
+                }
+
+                // Generar imagen combinada con firma y nombre impreso abajo
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = sigCanvas.width;
+                finalCanvas.height = sigCanvas.height + 60 * ratio;
+                const finalCtx = finalCanvas.getContext('2d');
+                finalCtx.scale(ratio, ratio);
+
+                // Fondo blanco
+                finalCtx.fillStyle = '#ffffff';
+                finalCtx.fillRect(0, 0, finalCanvas.width / ratio, finalCanvas.height / ratio);
+
+                // Dibujar firma previa
+                finalCtx.drawImage(sigCanvas, 0, 0, rect.width, rect.height);
+
+                // Línea y nombre
+                finalCtx.strokeStyle = '#cccccc';
+                finalCtx.lineWidth = 1;
+                finalCtx.beginPath();
+                finalCtx.moveTo(20, rect.height + 5);
+                finalCtx.lineTo(rect.width - 20, rect.height + 5);
+                finalCtx.stroke();
+
+                finalCtx.fillStyle = '#333333';
+                finalCtx.font = 'bold 14px Arial';
+                finalCtx.textAlign = 'center';
+                finalCtx.fillText(nameInput, rect.width / 2, rect.height + 30);
+
+                const link = document.createElement('a');
+                link.download = `Firma_Nombre_${Date.now()}.png`;
+                link.href = finalCanvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
 </body>
 </html>
